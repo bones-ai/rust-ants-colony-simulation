@@ -233,21 +233,24 @@ fn check_home_food_collisions(
         }
 
         // Food Collision
-        let dist_to_food =
-            transform
+        // Iterate over each food location
+        for food_location in FOOD_LOCATIONS {
+            let dist_to_food = transform
                 .translation
-                .distance(vec3(FOOD_LOCATION.0, FOOD_LOCATION.1, 0.0));
-        if dist_to_food < FOOD_PICKUP_RADIUS {
-            // rebound only the ants with food
-            match ant_task.0 {
-                AntTask::FindFood => {
-                    velocity.0 *= -1.0;
+                .distance(vec3(food_location.0, food_location.1, 0.0));
+
+            if dist_to_food < FOOD_PICKUP_RADIUS {
+                // rebound only the ants with food
+                match ant_task.0 {
+                    AntTask::FindFood => {
+                        velocity.0 *= -1.0;
+                    }
+                    AntTask::FindHome => {}
                 }
-                AntTask::FindHome => {}
+                ant_task.0 = AntTask::FindHome;
+                ph_strength.0 = ANT_INITIAL_PH_STRENGTH;
+                *image_handle = asset_server.load(SPRITE_ANT_WITH_FOOD);
             }
-            ant_task.0 = AntTask::FindHome;
-            ph_strength.0 = ANT_INITIAL_PH_STRENGTH;
-            *image_handle = asset_server.load(SPRITE_ANT_WITH_FOOD);
         }
     }
 }

@@ -23,8 +23,8 @@ fn main() {
                 .set(ImagePlugin::default_nearest())
                 .set(WindowPlugin {
                     primary_window: Some(Window {
-                        resizable: false,
-                        mode: WindowMode::Fullscreen,
+                        resizable: true,
+                        mode: WindowMode::Windowed,
                         focused: true,
                         resolution: (W, H).into(),
                         title: "Ants".to_string(),
@@ -79,11 +79,12 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         ..Default::default()
     });
 
-    // Food sprite
-    commands.spawn(SpriteBundle {
-        texture: asset_server.load(SPRITE_FOOD),
-        transform: Transform::from_xyz(FOOD_LOCATION.0, FOOD_LOCATION.1, 2.0)
-            .with_scale(Vec3::splat(FOOD_SPRITE_SCALE)),
-        ..Default::default()
-    });
+    for &food_location in FOOD_LOCATIONS {
+        commands.spawn(SpriteBundle {
+            texture: asset_server.load(SPRITE_FOOD),
+            transform: Transform::from_xyz(food_location.0, food_location.1, 2.0)
+                .with_scale(Vec3::splat(FOOD_SPRITE_SCALE)),
+            ..Default::default()
+        });
+    }
 }
