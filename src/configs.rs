@@ -41,8 +41,15 @@ pub const PH_COLOR_TO_HOME: (u8, u8, u8) = (92, 46, 126);
 pub const PH_GRID_OPACITY: u8 = 255;
 
 // Food
-// pub const FOOD_LOCATION: (f32, f32) = (-400.0, 300.0);
-pub const FOOD_LOCATION: (f32, f32) = (-750.0, 400.0);
+// Define the food locations as a vector of tuples
+pub const FOOD_LOCATIONS: &[(f32, f32)] = &[
+    (-350.0, 350.0),
+    (850.0, 350.0),
+    (-200.0, -500.0),
+    (600.0, 600.0),
+    (700.0, -200.0),
+    // Add more food locations as needed
+];
 pub const FOOD_PICKUP_RADIUS: f32 = 30.0;
 pub const FOOD_SPRITE_SCALE: f32 = 2.0;
 
