@@ -45,7 +45,6 @@ fn settings_toggle(
         settings.is_show_ants = !settings.is_show_ants;
         toggle_ant_visibility(ant_query, settings.is_show_ants);
     }
-
 }
 
 fn settings_dialog(
@@ -61,7 +60,7 @@ fn settings_dialog(
 
     egui::Window::new("no-title")
         .title_bar(false)
-        .default_pos(egui::pos2(0.0, H as f32))
+        .default_pos(egui::pos2(0.0, H))
         .show(ctx, |ui| {
             egui::CollapsingHeader::new("Settings")
                 .default_open(true)

@@ -39,12 +39,12 @@ impl QuadTree {
     pub fn query(&self, range: &Rectangle) -> Vec<Point> {
         let mut res = Vec::new();
 
-        if !self.boundary.intersects(&range) {
+        if !self.boundary.intersects(range) {
             return res;
         }
 
         for p in self.points.iter() {
-            if range.contains(&p) {
+            if range.contains(p) {
                 res.push(p.clone());
             }
         }
@@ -119,27 +119,27 @@ impl QuadTree {
         self.subdivide();
 
         if let Some(v) = &mut self.tl {
-            if v.insert(&point) {
+            if v.insert(point) {
                 return true;
             }
         }
         if let Some(v) = &mut self.tr {
-            if v.insert(&point) {
+            if v.insert(point) {
                 return true;
             }
         }
         if let Some(v) = &mut self.bl {
-            if v.insert(&point) {
+            if v.insert(point) {
                 return true;
             }
         }
         if let Some(v) = &mut self.br {
-            if v.insert(&point) {
+            if v.insert(point) {
                 return true;
             }
         }
 
-        return false;
+        false
     }
 }
 

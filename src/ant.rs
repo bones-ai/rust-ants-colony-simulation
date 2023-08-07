@@ -120,9 +120,8 @@ fn update_camera_follow_pos(
     ant_query: Query<&Transform, With<Ant>>,
     mut follow_pos: ResMut<AntFollowCameraPos>,
 ) {
-    for transform in ant_query.iter() {
+    if let Some(transform) = ant_query.iter().next() {
         follow_pos.0 = transform.translation.truncate();
-        break;
     }
 }
 
@@ -142,14 +141,20 @@ fn get_steering_force(target: Vec2, current: Vec2, velocity: Vec2) -> Vec2 {
     steering * 0.05
 }
 
-fn calc_weighted_midpoint(points: &Vec<(i32, i32, f32)>) -> Vec2 {
-    let total_weight: f32 = points.iter().map(|point| point.2).sum();
+pub fn calc_weighted_midpoint(points: &[(i32, i32, f32)]) -> Vec2 {
+    let mut tw = 0.0;
+    let mut wsx = 0.0;
+    let mut wsy = 0.0;
 
-    let weighted_sum_x: f32 = points.iter().map(|point| point.0 as f32 * point.2).sum();
-    let weighted_sum_y: f32 = points.iter().map(|point| point.1 as f32 * point.2).sum();
+    points.iter().for_each(|(p0, p1, p2)| {
+        tw += p2;
+        wsx += (*p0 as f32) * (p2);
+        wsy += (*p1 as f32) * (p2);
+    });
 
-    let weighted_midpoint_x = weighted_sum_x / total_weight;
-    let weighted_midpoint_y = weighted_sum_y / total_weight;
+    let total_weight_recip = tw.recip();
+    let weighted_midpoint_x = wsx * total_weight_recip;
+    let weighted_midpoint_y = wsy * total_weight_recip;
 
     vec2(weighted_midpoint_x, weighted_midpoint_y)
 }
@@ -160,27 +165,26 @@ fn periodic_direction_update(
     scan_radius: Res<AntScanRadius>,
 ) {
     for (mut acceleration, transform, current_task, velocity) in ant_query.iter_mut() {
-        let surrounding_ph;
         let current_pos = transform.translation;
 
-        match current_task.0 {
+        let surrounding_ph = match current_task.0 {
             AntTask::FindFood => {
-                surrounding_ph = Some(
+                Some(
                     pheromones
                         .to_food
                         .get_ph_in_range(&current_pos, scan_radius.0),
-                );
+                )
                 // surrounding_ph = Some(pheromones.get_pheromone_points(&current_pos, false));
             }
             AntTask::FindHome => {
-                surrounding_ph = Some(
+                Some(
                     pheromones
                         .to_home
                         .get_ph_in_range(&current_pos, scan_radius.0),
-                );
+                )
                 // surrounding_ph = Some(pheromones.get_pheromone_points(&current_pos, true));
             }
-        }
+        };
 
         let points = surrounding_ph.unwrap();
         if points.is_empty() {
@@ -211,6 +215,8 @@ fn check_home_food_collisions(
     >,
     asset_server: Res<AssetServer>,
 ) {
+    let now = std::time::Instant::now();
+
     for (transform, mut velocity, mut ant_task, mut ph_strength, mut image_handle) in
         ant_query.iter_mut()
     {
@@ -250,11 +256,17 @@ fn check_home_food_collisions(
             *image_handle = asset_server.load(SPRITE_ANT_WITH_FOOD);
         }
     }
+    println!(
+        "check home food collisions took {} us",
+        now.elapsed().as_micros()
+    );
 }
 
 fn check_wall_collision(
     mut ant_query: Query<(&Transform, &Velocity, &mut Acceleration), With<Ant>>,
 ) {
+    let now = std::time::Instant::now();
+
     for (transform, velocity, mut acceleration) in ant_query.iter_mut() {
         // wall rebound
         let border = 20.0;
@@ -271,11 +283,14 @@ fn check_wall_collision(
                 get_steering_force(target, transform.translation.truncate(), velocity.0);
         }
     }
+    println!("check wall collision took {} us", now.elapsed().as_micros());
 }
 
 fn update_position(
     mut ant_query: Query<(&mut Transform, &mut Velocity, &mut Acceleration), With<Ant>>,
 ) {
+    let now = std::time::Instant::now();
+
     for (mut transform, mut velocity, mut acceleration) in ant_query.iter_mut() {
         let old_pos = transform.translation;
 
@@ -285,4 +300,6 @@ fn update_position(
         transform.rotation =
             Quat::from_rotation_z(calc_rotation_angle(&old_pos, &transform.translation) + PI / 2.0);
     }
+
+    println!("update_position() took {} us", now.elapsed().as_micros());
 }

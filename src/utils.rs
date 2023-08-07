@@ -1,26 +1,23 @@
-use std::f32::consts::PI;
-
+use crate::*;
 use bevy::{
     math::{vec2, vec3},
     prelude::*,
 };
 use rand::{thread_rng, Rng};
-
-use crate::*;
+use std::f32::consts::PI;
 
 pub fn calc_rotation_angle(v1: &Vec3, v2: &Vec3) -> f32 {
     let dx = v1.x - v2.x;
     let dy = v1.y - v2.y;
 
     // Calculate the angle using arctangent (atan2) function
-    let angle_rad = dy.atan2(dx);
+    let mut angle_rad = dy.atan2(dx);
 
     // Ensure the angle is within [0, 2*PI) range
     if angle_rad < 0.0 {
-        angle_rad + 2.0 * PI
-    } else {
-        angle_rad
+        angle_rad += 2.0 * PI;
     }
+    angle_rad
 }
 
 pub fn angle_between_vectors(a: &Vec2, b: &Vec2) -> f32 {
@@ -29,9 +26,7 @@ pub fn angle_between_vectors(a: &Vec2, b: &Vec2) -> f32 {
     let magnitude_b = (b.x * b.x + b.y * b.y).sqrt();
 
     let cos_theta = dot_product / (magnitude_a * magnitude_b);
-    let angle_radians = cos_theta.acos();
-
-    angle_radians
+    cos_theta.acos()
 }
 
 pub fn rotate_vector(vector: &Vec2, angle_deg: f32) -> Vec2 {

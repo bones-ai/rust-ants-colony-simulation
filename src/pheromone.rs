@@ -39,7 +39,7 @@ impl PheromoneGrid {
                 *old_value = (value + *old_value).min(MAX_PHEROMONE_STRENGTH);
             }
             None => {
-                self.strength.insert(key.clone(), value);
+                self.strength.insert(*key, value);
             }
         }
     }
@@ -97,18 +97,10 @@ fn pheromone_image_update(
 ) {
     let mut img_handle = image_handle_query.single_mut();
     let (w, h) = (
-        W as usize / PHEROMONE_UNIT_GRID_SIZE as usize,
-        H as usize / PHEROMONE_UNIT_GRID_SIZE as usize,
+        W as usize / PHEROMONE_UNIT_GRID_SIZE,
+        H as usize / PHEROMONE_UNIT_GRID_SIZE,
     );
-    let mut bytes = Vec::with_capacity(w as usize * h as usize * 4);
-    for _ in 0..h {
-        for _ in 0..w {
-            bytes.push(0);
-            bytes.push(0);
-            bytes.push(0);
-            bytes.push(0);
-        }
-    }
+    let mut bytes = vec![0; w * h * 4];
 
     if sim_settings.is_show_home_ph {
         add_map_to_img(
@@ -138,8 +130,8 @@ fn pheromone_image_update(
     *img_handle = textures.add(pheromone_map);
 }
 
-fn add_map_to_img(map: &HashMap<(i32, i32), f32>, color: &(u8, u8, u8), img_bytes: &mut Vec<u8>) {
-    let w = W as usize / PHEROMONE_UNIT_GRID_SIZE as usize;
+fn add_map_to_img(map: &HashMap<(i32, i32), f32>, color: &(u8, u8, u8), img_bytes: &mut [u8]) {
+    let w = W as usize / PHEROMONE_UNIT_GRID_SIZE;
     for (k, v) in map.iter() {
         let (x, y) = (k.0, k.1);
         let (x, y) = window_to_grid(x, y);
@@ -222,7 +214,7 @@ impl Pheromones {
             }
         }
 
-        return ph_items;
+        ph_items
     }
 
     pub fn update_qt(&mut self) {

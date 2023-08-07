@@ -13,13 +13,14 @@ Here's the entire timelapse of the AI learning to drive
 
 ## Usage
 - Clone the repo
-    ```
-    git clone git@github.com:bones-ai/rust-ants-colony-simulation.git
-    cd rust-ants-colony-simulation
-    ```
+```bash
+git clone git@github.com:bones-ai/rust-ants-colony-simulation.git
+cd rust-ants-colony-simulation
+```
 - Run the simulation
-    ``` 
-    cargo run
-    ```
+```bash
+cargo run --release
+```
+
 ## Configurations
 - The project config file is located at `src/configs.rs`
