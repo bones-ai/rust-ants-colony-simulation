@@ -8,6 +8,7 @@ use bevy::{
 use ants::{
     ant::{AntFollowCameraPos, AntPlugin},
     gui::{GuiPlugin, SimSettings},
+    pathviz::PathVizPlugin,
     pheromone::PheromonePlugin,
     *,
 };
@@ -49,6 +50,7 @@ fn main() {
         // Internal Plugins
         .add_plugins(AntPlugin)
         .add_plugins(PheromonePlugin)
+        .add_plugins(PathVizPlugin)
         .add_plugins(GuiPlugin)
         .run();
 }

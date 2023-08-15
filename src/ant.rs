@@ -8,6 +8,8 @@ use bevy::{
 use rand::{thread_rng, Rng};
 
 use crate::{
+    gui::SimStatistics,
+    pheromone::Pheromones,
     utils::{calc_rotation_angle, get_rand_unit_vec2},
     *,
 };
@@ -22,7 +24,7 @@ pub enum AntTask {
 #[derive(Component)]
 pub struct Ant;
 #[derive(Component)]
-struct CurrentTask(AntTask);
+pub struct CurrentTask(pub AntTask);
 #[derive(Component)]
 struct Velocity(Vec2);
 #[derive(Component)]
@@ -42,7 +44,7 @@ impl Plugin for AntPlugin {
             .insert_resource(AntFollowCameraPos(Vec2::ZERO))
             .add_systems(
                 Update,
-                drop_pheromone.run_if(on_timer(Duration::from_secs_f32(PH_DROP_INTERVAL))),
+                drop_pheromone.run_if(on_timer(Duration::from_secs_f32(ANT_PH_DROP_INTERVAL))),
             )
             .add_systems(
                 Update,
@@ -61,12 +63,16 @@ impl Plugin for AntPlugin {
             )
             .add_systems(
                 Update,
+                update_stats.run_if(on_timer(Duration::from_secs_f32(3.0))),
+            )
+            .add_systems(
+                Update,
                 update_scan_radius.run_if(on_timer(Duration::from_secs_f32(1.0))),
             )
             .add_systems(
                 Update,
                 decay_ph_strength.run_if(on_timer(Duration::from_secs_f32(
-                    PH_STRENGTH_DECAY_INTERVAL,
+                    ANT_PH_STRENGTH_DECAY_INTERVAL,
                 ))),
             )
             .add_systems(Update, update_position.after(check_wall_collision));
@@ -100,20 +106,18 @@ fn drop_pheromone(
         let y = transform.translation.y as i32;
 
         match ant_task.0 {
-            AntTask::FindFood => pheromones.to_home.emit(&(x, y), ph_strength.0),
-            AntTask::FindHome => pheromones.to_food.emit(&(x, y), ph_strength.0),
+            AntTask::FindFood => pheromones.to_home.emit_signal(&(x, y), ph_strength.0),
+            AntTask::FindHome => pheromones.to_food.emit_signal(&(x, y), ph_strength.0),
         }
     }
-
-    // pheromones.update_qt();
 }
 
 fn update_scan_radius(mut scan_radius: ResMut<AntScanRadius>) {
-    if scan_radius.0 > INITIAL_ANT_PH_SCAN_RADIUS * PH_SCAN_RADIUS_SCALE {
+    if scan_radius.0 > INITIAL_ANT_PH_SCAN_RADIUS * ANT_PH_SCAN_RADIUS_SCALE {
         return;
     }
 
-    scan_radius.0 += PH_SCAN_RADIUS_INCREMENT;
+    scan_radius.0 += ANT_PH_SCAN_RADIUS_INCREMENT;
 }
 
 fn update_camera_follow_pos(
@@ -126,13 +130,18 @@ fn update_camera_follow_pos(
     }
 }
 
+fn update_stats(
+    mut stats: ResMut<SimStatistics>,
+    scan_radius: Res<AntScanRadius>,
+    ant_query: Query<With<Ant>>,
+) {
+    stats.scan_radius = scan_radius.0;
+    stats.num_ants = ant_query.iter().len();
+}
+
 fn decay_ph_strength(mut ant_query: Query<&mut PhStrength, With<Ant>>) {
     for mut ph_strength in ant_query.iter_mut() {
-        if ph_strength.0 <= 0.0 {
-            continue;
-        }
-
-        ph_strength.0 -= PH_STRENGTH_DECAY_RATE;
+        ph_strength.0 = f32::max(ph_strength.0 - ANT_PH_STRENGTH_DECAY_RATE, 0.0);
     }
 }
 
@@ -142,59 +151,71 @@ fn get_steering_force(target: Vec2, current: Vec2, velocity: Vec2) -> Vec2 {
     steering * 0.05
 }
 
-fn calc_weighted_midpoint(points: &Vec<(i32, i32, f32)>) -> Vec2 {
-    let total_weight: f32 = points.iter().map(|point| point.2).sum();
-
-    let weighted_sum_x: f32 = points.iter().map(|point| point.0 as f32 * point.2).sum();
-    let weighted_sum_y: f32 = points.iter().map(|point| point.1 as f32 * point.2).sum();
-
-    let weighted_midpoint_x = weighted_sum_x / total_weight;
-    let weighted_midpoint_y = weighted_sum_y / total_weight;
-
-    vec2(weighted_midpoint_x, weighted_midpoint_y)
-}
-
 fn periodic_direction_update(
     mut ant_query: Query<(&mut Acceleration, &Transform, &CurrentTask, &Velocity), With<Ant>>,
-    pheromones: Res<Pheromones>,
+    mut pheromones: ResMut<Pheromones>,
+    mut stats: ResMut<SimStatistics>,
     scan_radius: Res<AntScanRadius>,
 ) {
-    for (mut acceleration, transform, current_task, velocity) in ant_query.iter_mut() {
-        let surrounding_ph;
-        let current_pos = transform.translation;
+    (stats.food_cache_size, stats.home_cache_size) = pheromones.clear_cache();
 
+    for (mut acceleration, transform, current_task, velocity) in ant_query.iter_mut() {
+        let current_pos = transform.translation;
+        let mut target = None;
+
+        // If ant is close to food/home, pull it towards itself
         match current_task.0 {
             AntTask::FindFood => {
-                surrounding_ph = Some(
-                    pheromones
-                        .to_food
-                        .get_ph_in_range(&current_pos, scan_radius.0),
-                );
-                // surrounding_ph = Some(pheromones.get_pheromone_points(&current_pos, false));
+                let dist_to_food = transform.translation.distance_squared(vec3(
+                    FOOD_LOCATION.0,
+                    FOOD_LOCATION.1,
+                    0.0,
+                ));
+                if dist_to_food <= ANT_TARGET_AUTO_PULL_RADIUS * ANT_TARGET_AUTO_PULL_RADIUS {
+                    target = Some(vec2(FOOD_LOCATION.0, FOOD_LOCATION.1));
+                }
             }
             AntTask::FindHome => {
-                surrounding_ph = Some(
-                    pheromones
-                        .to_home
-                        .get_ph_in_range(&current_pos, scan_radius.0),
-                );
-                // surrounding_ph = Some(pheromones.get_pheromone_points(&current_pos, true));
+                let dist_to_home = transform.translation.distance_squared(vec3(
+                    HOME_LOCATION.0,
+                    HOME_LOCATION.1,
+                    0.0,
+                ));
+                if dist_to_home <= ANT_TARGET_AUTO_PULL_RADIUS * ANT_TARGET_AUTO_PULL_RADIUS {
+                    target = Some(vec2(HOME_LOCATION.0, HOME_LOCATION.1));
+                }
             }
         }
 
-        let points = surrounding_ph.unwrap();
-        if points.is_empty() {
+        if target.is_none() {
+            match current_task.0 {
+                AntTask::FindFood => {
+                    target = pheromones
+                        .to_food
+                        .get_steer_target(&current_pos, scan_radius.0);
+                }
+                AntTask::FindHome => {
+                    target = pheromones
+                        .to_home
+                        .get_steer_target(&current_pos, scan_radius.0);
+                }
+            }
+        }
+
+        if target.is_none() {
             // Default direction randomization
             acceleration.0 += get_rand_unit_vec2() * 0.2;
             continue;
         }
 
-        let target = calc_weighted_midpoint(&points);
-        let steering_force =
-            get_steering_force(target, transform.translation.truncate(), velocity.0);
+        let steering_force = get_steering_force(
+            target.unwrap(),
+            transform.translation.truncate(),
+            velocity.0,
+        );
 
         let mut rng = rand::thread_rng();
-        acceleration.0 += steering_force * rng.gen_range(0.2..ANT_STERRING_FORCE_FACTOR);
+        acceleration.0 += steering_force * rng.gen_range(0.4..=ANT_STEERING_FORCE_FACTOR);
     }
 }
 
@@ -218,8 +239,8 @@ fn check_home_food_collisions(
         let dist_to_home =
             transform
                 .translation
-                .distance(vec3(HOME_LOCATION.0, HOME_LOCATION.1, 0.0));
-        if dist_to_home < HOME_RADIUS {
+                .distance_squared(vec3(HOME_LOCATION.0, HOME_LOCATION.1, 0.0));
+        if dist_to_home < HOME_RADIUS * HOME_RADIUS {
             // rebound only the ants with food
             match ant_task.0 {
                 AntTask::FindFood => {}
@@ -236,9 +257,8 @@ fn check_home_food_collisions(
         let dist_to_food =
             transform
                 .translation
-                .distance(vec3(FOOD_LOCATION.0, FOOD_LOCATION.1, 0.0));
-        if dist_to_food < FOOD_PICKUP_RADIUS {
-            // rebound only the ants with food
+                .distance_squared(vec3(FOOD_LOCATION.0, FOOD_LOCATION.1, 0.0));
+        if dist_to_food < FOOD_PICKUP_RADIUS * FOOD_PICKUP_RADIUS {
             match ant_task.0 {
                 AntTask::FindFood => {
                     velocity.0 *= -1.0;
@@ -279,8 +299,14 @@ fn update_position(
     for (mut transform, mut velocity, mut acceleration) in ant_query.iter_mut() {
         let old_pos = transform.translation;
 
-        velocity.0 = (velocity.0 + acceleration.0).normalize();
-        transform.translation += vec3(velocity.0.x, velocity.0.y, 0.0) * ANT_SPEED;
+        if !acceleration.0.is_nan() {
+            velocity.0 = (velocity.0 + acceleration.0).normalize();
+            let new_translation = transform.translation + vec3(velocity.0.x, velocity.0.y, 0.0) * ANT_SPEED;
+            if !new_translation.is_nan() {
+                transform.translation = new_translation;
+            }
+        }
+
         acceleration.0 = Vec2::ZERO;
         transform.rotation =
             Quat::from_rotation_z(calc_rotation_angle(&old_pos, &transform.translation) + PI / 2.0);
