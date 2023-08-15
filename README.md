@@ -23,3 +23,4 @@ Here's the entire timelapse of the AI learning to drive
     ```
 ## Configurations
 - The project config file is located at `src/configs.rs`
+- If all ants aren't forming a single trail even after a long time, try increasing `ANT_INITIAL_PH_STRENGTH` in the configs to a greater value (exmaple: `40.0`)
