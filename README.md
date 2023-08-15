@@ -1,5 +1,5 @@
 # Ant Colony Simulation
-This is an ant colony simulation, the implementation is pretty ineffecient for now and can only handle about 500 ants on my old laptop.
+This is an ant colony simulation, it internally uses kdtree and query caching, it's able to handle about 5k ants on the cpu.
 
 
 Built with [Rust](https://www.rust-lang.org/) and [Bevy](https://bevyengine.org/) game engine

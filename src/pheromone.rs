@@ -49,8 +49,7 @@ impl Plugin for PheromonePlugin {
             )
             .add_systems(
                 Update,
-                pheromone_image_update
-                    .run_if(on_timer(Duration::from_secs_f32(PH_IMG_UPDATE_SEC))),
+                pheromone_image_update.run_if(on_timer(Duration::from_secs_f32(PH_IMG_UPDATE_SEC))),
             );
     }
 }

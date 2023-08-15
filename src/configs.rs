@@ -3,7 +3,7 @@ pub const W: f32 = 1920.0;
 pub const H: f32 = 1080.0;
 // pub const W: f32 = 960.0;
 // pub const H: f32 = 800.0;
-pub const BG_COLOR: (u8, u8, u8) = (24, 24, 24);
+pub const BG_COLOR: (u8, u8, u8) = (0, 0, 0);
 
 // Ants
 pub const NUM_ANTS: u32 = 5000;

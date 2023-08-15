@@ -84,6 +84,10 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         commands.spawn((
             SpriteBundle {
                 texture: asset_server.load(SPRITE_ANT),
+                sprite: Sprite {
+                    color: Color::rgb(1.1, 1.1, 1.0),
+                    ..default()
+                },
                 transform: Transform::from_xyz(HOME_LOCATION.0, HOME_LOCATION.1, ANT_Z_INDEX)
                     .with_scale(Vec3::splat(ANT_SPRITE_SCALE)),
                 ..Default::default()
@@ -223,6 +227,7 @@ fn check_home_food_collisions(
     mut ant_query: Query<
         (
             &Transform,
+            &mut Sprite,
             &mut Velocity,
             &mut CurrentTask,
             &mut PhStrength,
@@ -232,7 +237,7 @@ fn check_home_food_collisions(
     >,
     asset_server: Res<AssetServer>,
 ) {
-    for (transform, mut velocity, mut ant_task, mut ph_strength, mut image_handle) in
+    for (transform, mut sprite, mut velocity, mut ant_task, mut ph_strength, mut image_handle) in
         ant_query.iter_mut()
     {
         // Home collision
@@ -251,6 +256,7 @@ fn check_home_food_collisions(
             ant_task.0 = AntTask::FindFood;
             ph_strength.0 = ANT_INITIAL_PH_STRENGTH;
             *image_handle = asset_server.load(SPRITE_ANT);
+            sprite.color = Color::rgb(1.0, 1.0, 2.5);
         }
 
         // Food Collision
@@ -268,6 +274,7 @@ fn check_home_food_collisions(
             ant_task.0 = AntTask::FindHome;
             ph_strength.0 = ANT_INITIAL_PH_STRENGTH;
             *image_handle = asset_server.load(SPRITE_ANT_WITH_FOOD);
+            sprite.color = Color::rgb(1.0, 2.0, 1.0);
         }
     }
 }
@@ -301,7 +308,8 @@ fn update_position(
 
         if !acceleration.0.is_nan() {
             velocity.0 = (velocity.0 + acceleration.0).normalize();
-            let new_translation = transform.translation + vec3(velocity.0.x, velocity.0.y, 0.0) * ANT_SPEED;
+            let new_translation =
+                transform.translation + vec3(velocity.0.x, velocity.0.y, 0.0) * ANT_SPEED;
             if !new_translation.is_nan() {
                 transform.translation = new_translation;
             }

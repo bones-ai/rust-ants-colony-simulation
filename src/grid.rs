@@ -85,17 +85,11 @@ impl WorldGrid {
     }
 
     fn get_ph_key(&self, x: i32, y: i32) -> (i32, i32) {
-        (
-            x / PH_UNIT_GRID_SIZE as i32,
-            y / PH_UNIT_GRID_SIZE as i32,
-        )
+        (x / PH_UNIT_GRID_SIZE as i32, y / PH_UNIT_GRID_SIZE as i32)
     }
 
     fn get_pos_from_ph(&self, x: i32, y: i32) -> (i32, i32) {
-        (
-            x * PH_UNIT_GRID_SIZE as i32,
-            y * PH_UNIT_GRID_SIZE as i32,
-        )
+        (x * PH_UNIT_GRID_SIZE as i32, y * PH_UNIT_GRID_SIZE as i32)
     }
 
     fn get_cache_grid_pos(&self, x: i32, y: i32) -> (i32, i32) {
@@ -144,7 +138,10 @@ impl WorldGrid {
 
 impl DecayGrid {
     pub fn new(values: HashMap<(i32, i32), f32>, max_allowed_value: f32) -> Self {
-        Self { values, max_allowed_value }
+        Self {
+            values,
+            max_allowed_value,
+        }
     }
 
     pub fn add_value(&mut self, key: &(i32, i32), value: f32, increment_value: f32) {
@@ -188,10 +185,7 @@ pub fn add_map_to_grid_img(
         let (mut x, mut y) = (k.0, k.1);
 
         if use_grid_pos {
-            (x, y) = (
-                x * PH_UNIT_GRID_SIZE as i32,
-                y * PH_UNIT_GRID_SIZE as i32,
-            );
+            (x, y) = (x * PH_UNIT_GRID_SIZE as i32, y * PH_UNIT_GRID_SIZE as i32);
             (x, y) = window_to_grid(x, y);
         }
 

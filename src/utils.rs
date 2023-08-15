@@ -84,19 +84,14 @@ pub fn rotate_vector(vector: &Vec2, angle_deg: f32) -> Vec2 {
 pub fn window_to_grid(x: i32, y: i32) -> (i32, i32) {
     // Convert from center to top left co-ords
     let (tx, ty) = (x + (W as usize / 2) as i32, (H as usize / 2) as i32 - y);
-    let (tx, ty) = (
-        tx / PH_UNIT_GRID_SIZE as i32,
-        ty / PH_UNIT_GRID_SIZE as i32,
-    );
+    let (tx, ty) = (tx / PH_UNIT_GRID_SIZE as i32, ty / PH_UNIT_GRID_SIZE as i32);
 
     (tx, ty)
 }
 
 pub fn grid_to_window(tx: i32, ty: i32) -> (i32, i32) {
-    let x =
-        tx * PH_UNIT_GRID_SIZE as i32 + PH_UNIT_GRID_SIZE as i32 / 2 - (W as i32 / 2);
-    let y =
-        (H as i32 / 2) - ty * PH_UNIT_GRID_SIZE as i32 - PH_UNIT_GRID_SIZE as i32 / 2;
+    let x = tx * PH_UNIT_GRID_SIZE as i32 + PH_UNIT_GRID_SIZE as i32 / 2 - (W as i32 / 2);
+    let y = (H as i32 / 2) - ty * PH_UNIT_GRID_SIZE as i32 - PH_UNIT_GRID_SIZE as i32 / 2;
 
     (x, y)
 }

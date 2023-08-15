@@ -1,4 +1,5 @@
 use bevy::{
+    core_pipeline::{tonemapping::Tonemapping, bloom::BloomSettings},
     diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
     math::vec3,
     prelude::*,
@@ -25,7 +26,7 @@ fn main() {
                 .set(WindowPlugin {
                     primary_window: Some(Window {
                         resizable: false,
-                        mode: WindowMode::Fullscreen,
+                        // mode: WindowMode::Fullscreen,
                         focused: true,
                         resolution: (W, H).into(),
                         title: "Ants".to_string(),
@@ -70,12 +71,27 @@ fn ant_follow_camera(
 
 fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
-        .spawn((Camera2dBundle::default(), FollowCamera))
+        .spawn((
+            Camera2dBundle {
+                camera: Camera {
+                    hdr: true,
+                    ..default()
+                },
+                tonemapping: Tonemapping::TonyMcMapface,
+                ..default()
+            },
+            BloomSettings::default(),
+            FollowCamera,
+        ))
         .insert(PanCam::default());
 
     // Ant colony sprite
     commands.spawn(SpriteBundle {
         texture: asset_server.load(SPRITE_ANT_COLONY),
+        sprite: Sprite {
+            color: Color::rgb(1.5, 1.5, 1.5),
+            ..default()
+        },
         transform: Transform::from_xyz(HOME_LOCATION.0, HOME_LOCATION.1, 2.0)
             .with_scale(Vec3::splat(HOME_SPRITE_SCALE)),
         ..Default::default()
@@ -84,6 +100,10 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     // Food sprite
     commands.spawn(SpriteBundle {
         texture: asset_server.load(SPRITE_FOOD),
+        sprite: Sprite {
+            color: Color::rgb(1.5, 1.5, 1.5),
+            ..default()
+        },
         transform: Transform::from_xyz(FOOD_LOCATION.0, FOOD_LOCATION.1, 2.0)
             .with_scale(Vec3::splat(FOOD_SPRITE_SCALE)),
         ..Default::default()
