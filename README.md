@@ -11,6 +11,10 @@ Here's the entire timelapse of the AI learning to drive
 
 [![youtube](https://img.youtube.com/vi/98pUSZAM_7M/0.jpg)](https://youtu.be/98pUSZAM_7M)
 
+# Timelapses with Approach 1
+[![youtube](https://img.youtube.com/vi/5xdfTJBMnwI/0.jpg)](https://youtu.be/5xdfTJBMnwI)
+
+
 ## Usage
 - Clone the repo
     ```
