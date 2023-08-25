@@ -7,42 +7,30 @@ use rand::{thread_rng, Rng};
 use std::f32::consts::PI;
 
 // Function to find the n points with max z values
-pub fn find_n_points_with_max_z(
-    points: &mut Vec<(i32, i32, f32)>,
-    n: usize,
-) -> Vec<(i32, i32, f32)> {
+pub fn find_n_points_with_max_z(points: &mut [(i32, i32, f32)], n: usize) -> Vec<(i32, i32, f32)> {
     quickselect(points, 0, points.len() - 1, n);
     points[points.len().saturating_sub(n)..].to_vec()
 }
 
-pub fn calc_weighted_midpoint(points: &Vec<(i32, i32, f32)>) -> Vec2 {
-    // vec2(points.first().unwrap().0 as f32, points.first().unwrap().1 as f32)
-    let total_weight: f32 = points.iter().map(|point| point.2).sum();
+pub fn calc_weighted_midpoint(points: &[(i32, i32, f32)]) -> Vec2 {
+    let mut total_weight = 0.0;
+    let mut weighted_sum_x = 0.0;
+    let mut weighted_sum_y = 0.0;
 
-    let weighted_sum_x: f32 = points.iter().map(|point| point.0 as f32 * point.2).sum();
-    let weighted_sum_y: f32 = points.iter().map(|point| point.1 as f32 * point.2).sum();
+    points.iter().for_each(|(p0, p1, p2)| {
+        total_weight += p2;
+        weighted_sum_x += *p0 as f32 * p2;
+        weighted_sum_y += *p1 as f32 * p2;
+    });
 
-    let weighted_midpoint_x = weighted_sum_x / total_weight;
-    let weighted_midpoint_y = weighted_sum_y / total_weight;
+    let total_weight_recip = total_weight.recip();
+    let weighted_midpoint_x = weighted_sum_x * total_weight_recip;
+    let weighted_midpoint_y = weighted_sum_y * total_weight_recip;
 
     vec2(weighted_midpoint_x, weighted_midpoint_y)
-    // let mut total_weight = 0.0;
-    // let mut weighted_sum_x = 0.0;
-    // let mut weighted_sum_y = 0.0;
-
-    // for &(x, y, w) in points {
-    //     weighted_sum_x += x as f32 * w;
-    //     weighted_sum_y += y as f32 * w;
-    //     total_weight += w;
-    // }
-
-    // let weighted_midpoint_x = weighted_sum_x / total_weight;
-    // let weighted_midpoint_y = weighted_sum_y / total_weight;
-
-    // vec2(weighted_midpoint_x, weighted_midpoint_y)
 }
 
-pub fn calc_rotation_angle(v1: &Vec3, v2: &Vec3) -> f32 {
+pub fn calc_rotation_angle(v1: Vec3, v2: Vec3) -> f32 {
     let dx = v1.x - v2.x;
     let dy = v1.y - v2.y;
 
@@ -135,7 +123,7 @@ fn partition(points: &mut [(i32, i32, f32)], low: usize, high: usize) -> usize {
 }
 
 // Modified Quickselect algorithm to find n points with max z values
-fn quickselect(points: &mut Vec<(i32, i32, f32)>, low: usize, high: usize, n: usize) {
+fn quickselect(points: &mut [(i32, i32, f32)], low: usize, high: usize, n: usize) {
     if low < high {
         let pivot_index = partition(points, low, high);
 

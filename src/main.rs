@@ -1,17 +1,15 @@
-use bevy::{
-    core_pipeline::{tonemapping::Tonemapping, bloom::BloomSettings},
-    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-    math::vec3,
-    prelude::*,
-    window::WindowMode,
-};
-
 use ants::{
     ant::{AntFollowCameraPos, AntPlugin},
     gui::{GuiPlugin, SimSettings},
     pathviz::PathVizPlugin,
     pheromone::PheromonePlugin,
     *,
+};
+use bevy::{
+    core_pipeline::{bloom::BloomSettings, tonemapping::Tonemapping},
+    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+    math::vec3,
+    prelude::*,
 };
 use bevy_pancam::{PanCam, PanCamPlugin};
 

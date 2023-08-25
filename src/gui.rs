@@ -1,7 +1,6 @@
+use crate::{ant::Ant, *};
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
-
-use crate::{ant::Ant, *};
 
 pub struct GuiPlugin;
 

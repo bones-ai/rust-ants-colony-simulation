@@ -1,18 +1,16 @@
-use std::{f32::consts::PI, time::Duration};
-
-use bevy::{
-    math::{vec2, vec3},
-    prelude::*,
-    time::common_conditions::on_timer,
-};
-use rand::{thread_rng, Rng};
-
 use crate::{
     gui::SimStatistics,
     pheromone::Pheromones,
     utils::{calc_rotation_angle, get_rand_unit_vec2},
     *,
 };
+use bevy::{
+    math::{vec2, vec3},
+    prelude::*,
+    time::common_conditions::on_timer,
+};
+use rand::{thread_rng, Rng};
+use std::{f32::consts::PI, time::Duration};
 
 pub struct AntPlugin;
 
@@ -276,17 +274,11 @@ fn check_home_food_collisions(
             sprite.color = Color::rgb(1.0, 2.0, 1.0);
         }
     }
-    println!(
-        "check home food collisions took {} us",
-        now.elapsed().as_micros()
-    );
 }
 
 fn check_wall_collision(
     mut ant_query: Query<(&Transform, &Velocity, &mut Acceleration), With<Ant>>,
 ) {
-    let now = std::time::Instant::now();
-
     for (transform, velocity, mut acceleration) in ant_query.iter_mut() {
         // wall rebound
         let border = 20.0;
@@ -303,14 +295,11 @@ fn check_wall_collision(
                 get_steering_force(target, transform.translation.truncate(), velocity.0);
         }
     }
-    println!("check wall collision took {} us", now.elapsed().as_micros());
 }
 
 fn update_position(
     mut ant_query: Query<(&mut Transform, &mut Velocity, &mut Acceleration), With<Ant>>,
 ) {
-    let now = std::time::Instant::now();
-
     for (mut transform, mut velocity, mut acceleration) in ant_query.iter_mut() {
         let old_pos = transform.translation;
 
@@ -325,8 +314,6 @@ fn update_position(
 
         acceleration.0 = Vec2::ZERO;
         transform.rotation =
-            Quat::from_rotation_z(calc_rotation_angle(&old_pos, &transform.translation) + PI / 2.0);
+            Quat::from_rotation_z(calc_rotation_angle(old_pos, transform.translation) + PI / 2.0);
     }
-
-    println!("update_position() took {} us", now.elapsed().as_micros());
 }

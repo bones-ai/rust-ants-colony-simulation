@@ -1,11 +1,3 @@
-use std::{collections::HashMap, time::Duration};
-
-use bevy::{
-    prelude::*,
-    render::render_resource::{Extent3d, TextureDimension, TextureFormat},
-    time::common_conditions::on_timer,
-};
-
 use crate::{
     ant::{Ant, AntTask, CurrentTask},
     grid::{add_map_to_grid_img, DecayGrid},
@@ -13,6 +5,12 @@ use crate::{
     utils::window_to_grid,
     *,
 };
+use bevy::{
+    prelude::*,
+    render::render_resource::{Extent3d, TextureDimension, TextureFormat},
+    time::common_conditions::on_timer,
+};
+use std::{collections::HashMap, time::Duration};
 
 pub struct PathVizPlugin;
 
@@ -96,19 +94,19 @@ fn update_path_viz_image(
 ) {
     let mut img_handle = query.single_mut();
     let (w, h) = (
-        W as usize / PH_UNIT_GRID_SIZE as usize,
-        H as usize / PH_UNIT_GRID_SIZE as usize,
+        W as usize / PH_UNIT_GRID_SIZE,
+        H as usize / PH_UNIT_GRID_SIZE,
     );
 
     let mut bytes = vec![0; w * h * 4];
     add_map_to_grid_img(
-        &viz_grid.dg_food.get_values(),
+        viz_grid.dg_food.get_values(),
         &VIZ_COLOR_TO_FOOD,
         &mut bytes,
         false,
     );
     add_map_to_grid_img(
-        &viz_grid.dg_home.get_values(),
+        viz_grid.dg_home.get_values(),
         &VIZ_COLOR_TO_HOME,
         &mut bytes,
         false,
