@@ -6,6 +6,42 @@ use bevy::{
 use rand::{thread_rng, Rng};
 use std::f32::consts::PI;
 
+// Function to find the n points with max z values
+pub fn find_n_points_with_max_z(
+    points: &mut Vec<(i32, i32, f32)>,
+    n: usize,
+) -> Vec<(i32, i32, f32)> {
+    quickselect(points, 0, points.len() - 1, n);
+    points[points.len().saturating_sub(n)..].to_vec()
+}
+
+pub fn calc_weighted_midpoint(points: &Vec<(i32, i32, f32)>) -> Vec2 {
+    // vec2(points.first().unwrap().0 as f32, points.first().unwrap().1 as f32)
+    let total_weight: f32 = points.iter().map(|point| point.2).sum();
+
+    let weighted_sum_x: f32 = points.iter().map(|point| point.0 as f32 * point.2).sum();
+    let weighted_sum_y: f32 = points.iter().map(|point| point.1 as f32 * point.2).sum();
+
+    let weighted_midpoint_x = weighted_sum_x / total_weight;
+    let weighted_midpoint_y = weighted_sum_y / total_weight;
+
+    vec2(weighted_midpoint_x, weighted_midpoint_y)
+    // let mut total_weight = 0.0;
+    // let mut weighted_sum_x = 0.0;
+    // let mut weighted_sum_y = 0.0;
+
+    // for &(x, y, w) in points {
+    //     weighted_sum_x += x as f32 * w;
+    //     weighted_sum_y += y as f32 * w;
+    //     total_weight += w;
+    // }
+
+    // let weighted_midpoint_x = weighted_sum_x / total_weight;
+    // let weighted_midpoint_y = weighted_sum_y / total_weight;
+
+    // vec2(weighted_midpoint_x, weighted_midpoint_y)
+}
+
 pub fn calc_rotation_angle(v1: &Vec3, v2: &Vec3) -> f32 {
     let dx = v1.x - v2.x;
     let dy = v1.y - v2.y;
@@ -43,12 +79,16 @@ pub fn rotate_vector(vector: &Vec2, angle_deg: f32) -> Vec2 {
 pub fn window_to_grid(x: i32, y: i32) -> (i32, i32) {
     // Convert from center to top left co-ords
     let (tx, ty) = (x + (W as usize / 2) as i32, (H as usize / 2) as i32 - y);
-    let (tx, ty) = (
-        tx / PHEROMONE_UNIT_GRID_SIZE as i32,
-        ty / PHEROMONE_UNIT_GRID_SIZE as i32,
-    );
+    let (tx, ty) = (tx / PH_UNIT_GRID_SIZE as i32, ty / PH_UNIT_GRID_SIZE as i32);
 
     (tx, ty)
+}
+
+pub fn grid_to_window(tx: i32, ty: i32) -> (i32, i32) {
+    let x = tx * PH_UNIT_GRID_SIZE as i32 + PH_UNIT_GRID_SIZE as i32 / 2 - (W as i32 / 2);
+    let y = (H as i32 / 2) - ty * PH_UNIT_GRID_SIZE as i32 - PH_UNIT_GRID_SIZE as i32 / 2;
+
+    (x, y)
 }
 
 pub fn vector_to_angle_deg(vec: Vec2) -> f32 {
@@ -76,4 +116,35 @@ pub fn get_rand_vec2() -> Vec2 {
 pub fn get_rand_unit_vec2() -> Vec2 {
     let rand_vec3 = get_rand_unit_vec3();
     vec2(rand_vec3.x, rand_vec3.y)
+}
+
+// Function to partition the array based on the pivot (max z value)
+fn partition(points: &mut [(i32, i32, f32)], low: usize, high: usize) -> usize {
+    let pivot = points[high].2;
+    let mut i = low;
+
+    for j in low..high {
+        if points[j].2 >= pivot {
+            points.swap(i, j);
+            i += 1;
+        }
+    }
+
+    points.swap(i, high);
+    i
+}
+
+// Modified Quickselect algorithm to find n points with max z values
+fn quickselect(points: &mut Vec<(i32, i32, f32)>, low: usize, high: usize, n: usize) {
+    if low < high {
+        let pivot_index = partition(points, low, high);
+
+        if pivot_index == n - 1 {
+            return;
+        } else if pivot_index > n - 1 {
+            quickselect(points, low, pivot_index - 1, n);
+        } else {
+            quickselect(points, pivot_index + 1, high, n);
+        }
+    }
 }
