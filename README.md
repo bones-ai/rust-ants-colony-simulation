@@ -17,14 +17,15 @@ Here's the entire timelapse of the AI learning to drive
 
 ## Usage
 - Clone the repo
-    ```
-    git clone git@github.com:bones-ai/rust-ants-colony-simulation.git
-    cd rust-ants-colony-simulation
-    ```
+```bash
+git clone git@github.com:bones-ai/rust-ants-colony-simulation.git
+cd rust-ants-colony-simulation
+```
 - Run the simulation
-    ``` 
-    cargo run
-    ```
+```bash
+cargo run --release
+```
+
 ## Configurations
 - The project config file is located at `src/configs.rs`
 - If all ants aren't forming a single trail even after a long time, try increasing `ANT_INITIAL_PH_STRENGTH` in the configs to a greater value (exmaple: `40.0`)

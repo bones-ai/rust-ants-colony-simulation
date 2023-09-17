@@ -1,16 +1,14 @@
-use std::{collections::HashMap, time::Duration};
-
-use bevy::{
-    prelude::*,
-    render::render_resource::{Extent3d, TextureDimension, TextureFormat},
-    time::common_conditions::on_timer,
-};
-
 use crate::{
     grid::{add_map_to_grid_img, WorldGrid},
     gui::{SimSettings, SimStatistics},
     *,
 };
+use bevy::{
+    prelude::*,
+    render::render_resource::{Extent3d, TextureDimension, TextureFormat},
+    time::common_conditions::on_timer,
+};
+use std::{collections::HashMap, time::Duration};
 
 pub struct PheromonePlugin;
 
@@ -81,14 +79,14 @@ fn pheromone_image_update(
 ) {
     let mut img_handle = image_handle_query.single_mut();
     let (w, h) = (
-        W as usize / PH_UNIT_GRID_SIZE as usize,
-        H as usize / PH_UNIT_GRID_SIZE as usize,
+        W as usize / PH_UNIT_GRID_SIZE,
+        H as usize / PH_UNIT_GRID_SIZE,
     );
     let mut bytes = vec![0; w * h * 4];
 
     if sim_settings.is_show_home_ph {
         add_map_to_grid_img(
-            &pheromone.to_home.get_signals(),
+            pheromone.to_home.get_signals(),
             &pheromone.to_home.color,
             &mut bytes,
             true,
@@ -96,7 +94,7 @@ fn pheromone_image_update(
     }
     if sim_settings.is_show_food_ph {
         add_map_to_grid_img(
-            &pheromone.to_food.get_signals(),
+            pheromone.to_food.get_signals(),
             &pheromone.to_food.color,
             &mut bytes,
             true,

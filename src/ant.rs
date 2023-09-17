@@ -1,18 +1,16 @@
-use std::{f32::consts::PI, time::Duration};
-
-use bevy::{
-    math::{vec2, vec3},
-    prelude::*,
-    time::common_conditions::on_timer,
-};
-use rand::{thread_rng, Rng};
-
 use crate::{
     gui::SimStatistics,
     pheromone::Pheromones,
     utils::{calc_rotation_angle, get_rand_unit_vec2},
     *,
 };
+use bevy::{
+    math::{vec2, vec3},
+    prelude::*,
+    time::common_conditions::on_timer,
+};
+use rand::{thread_rng, Rng};
+use std::{f32::consts::PI, time::Duration};
 
 pub struct AntPlugin;
 
@@ -128,9 +126,8 @@ fn update_camera_follow_pos(
     ant_query: Query<&Transform, With<Ant>>,
     mut follow_pos: ResMut<AntFollowCameraPos>,
 ) {
-    for transform in ant_query.iter() {
+    if let Some(transform) = ant_query.iter().next() {
         follow_pos.0 = transform.translation.truncate();
-        break;
     }
 }
 
@@ -189,7 +186,7 @@ fn periodic_direction_update(
                     target = Some(vec2(HOME_LOCATION.0, HOME_LOCATION.1));
                 }
             }
-        }
+        };
 
         if target.is_none() {
             match current_task.0 {
@@ -317,6 +314,6 @@ fn update_position(
 
         acceleration.0 = Vec2::ZERO;
         transform.rotation =
-            Quat::from_rotation_z(calc_rotation_angle(&old_pos, &transform.translation) + PI / 2.0);
+            Quat::from_rotation_z(calc_rotation_angle(old_pos, transform.translation) + PI / 2.0);
     }
 }

@@ -1,17 +1,15 @@
-use bevy::{
-    core_pipeline::{tonemapping::Tonemapping, bloom::BloomSettings},
-    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
-    math::vec3,
-    prelude::*,
-    window::WindowMode,
-};
-
 use ants::{
     ant::{AntFollowCameraPos, AntPlugin},
     gui::{GuiPlugin, SimSettings},
     pathviz::PathVizPlugin,
     pheromone::PheromonePlugin,
     *,
+};
+use bevy::{
+    core_pipeline::{bloom::BloomSettings, tonemapping::Tonemapping},
+    diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin},
+    math::vec3,
+    prelude::*,
 };
 use bevy_pancam::{PanCam, PanCamPlugin};
 
@@ -37,9 +35,9 @@ fn main() {
         )
         // External plugins & systems
         .add_plugins(LogDiagnosticsPlugin::default())
-        .add_plugins(FrameTimeDiagnosticsPlugin::default())
+        .add_plugins(FrameTimeDiagnosticsPlugin)
         .add_systems(Update, bevy::window::close_on_esc)
-        .add_plugins(PanCamPlugin::default())
+        .add_plugins(PanCamPlugin)
         // Default Resources
         .insert_resource(ClearColor(Color::rgba_u8(
             BG_COLOR.0, BG_COLOR.1, BG_COLOR.2, 0,

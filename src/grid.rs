@@ -1,12 +1,10 @@
-use std::{cmp, collections::HashMap};
-
-use bevy::prelude::*;
-use kd_tree::KdTree;
-
 use crate::{
     utils::{calc_weighted_midpoint, window_to_grid},
     *,
 };
+use bevy::prelude::*;
+use kd_tree::KdTree;
+use std::{cmp, collections::HashMap};
 
 pub struct DecayGrid {
     max_allowed_value: f32,
@@ -57,8 +55,7 @@ impl WorldGrid {
 
     pub fn clear_steer_cache(&mut self) -> u32 {
         let ret = self.steer_cache.len();
-        self.steer_cache = HashMap::new();
-
+        self.steer_cache.clear();
         ret as u32
     }
 
@@ -77,7 +74,7 @@ impl WorldGrid {
                 }
 
                 let steer_target = calc_weighted_midpoint(&v);
-                self.steer_cache.insert(grid_pos, steer_target.clone());
+                self.steer_cache.insert(grid_pos, steer_target);
                 Some(steer_target)
             }
             None => None,
@@ -149,12 +146,12 @@ impl DecayGrid {
             return;
         }
 
-        match self.values.get_mut(&key) {
+        match self.values.get_mut(key) {
             Some(old_value) => {
                 *old_value = (increment_value + *old_value).min(self.max_allowed_value);
             }
             None => {
-                self.values.insert(key.clone(), value);
+                self.values.insert(*key, value);
             }
         }
     }
@@ -180,7 +177,7 @@ pub fn add_map_to_grid_img(
     img_bytes: &mut Vec<u8>,
     use_grid_pos: bool,
 ) {
-    let w = W as usize / PH_UNIT_GRID_SIZE as usize;
+    let w = W as usize / PH_UNIT_GRID_SIZE;
     for (k, v) in map.iter() {
         let (mut x, mut y) = (k.0, k.1);
 

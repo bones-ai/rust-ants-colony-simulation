@@ -1,7 +1,6 @@
+use crate::{ant::Ant, *};
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts, EguiPlugin};
-
-use crate::{ant::Ant, *};
 
 pub struct GuiPlugin;
 
@@ -75,7 +74,7 @@ fn settings_dialog(
 
     egui::Window::new("no-title")
         .title_bar(false)
-        .default_pos(egui::pos2(0.0, H as f32))
+        .default_pos(egui::pos2(0.0, H))
         .show(ctx, |ui| {
             egui::CollapsingHeader::new("Stats")
                 .default_open(true)
